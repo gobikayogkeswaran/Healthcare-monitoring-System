@@ -1,0 +1,600 @@
+package healthcare1;
+
+import javafx.scene.Node;
+import javafx.scene.control.TextInputDialog;
+import java.util.Optional;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+
+public class Healthcare1 extends Application {
+
+    private Stage primaryStage;
+    private TextArea outputTextArea;
+
+    @Override
+    public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        showIntroPage();
+    }private void showIntroPage() {
+    primaryStage.setTitle("Health Monitoring System");
+
+    Image introImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg");
+    ImageView introImageView = new ImageView(introImage);
+
+    Button findRecipeButton = new Button("Care your health");
+    findRecipeButton.getStyleClass().add("main-button");
+    findRecipeButton.setStyle("-fx-background-color: #AEF359; -fx-text-fill: white; -fx-font-size: 24; -fx-padding: 15 30;"); // Adjust the size and padding as needed
+
+    // Add a welcome label with a different font style
+    Label welcomeLabel = new Label("WELCOME TO HEALTHY APP!!");
+    welcomeLabel.setStyle("-fx-font-family: 'Arial Pro Bold Italic'; -fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: white;");
+
+    VBox introLayout = new VBox(20, welcomeLabel, findRecipeButton);
+    introLayout.setAlignment(Pos.CENTER);
+
+    StackPane stackPane = new StackPane(introImageView, introLayout);
+
+    findRecipeButton.setOnAction(event -> showWelcomePage());
+
+    Scene introScene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(introScene);
+    primaryStage.show();
+}
+
+
+  private void showWelcomePage() {
+    primaryStage.setTitle("Welcome Page");
+
+    Image welcomeImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg");
+    ImageView welcomeImageView = new ImageView(welcomeImage);
+
+    Button loginButton = new Button("Login");
+    loginButton.getStyleClass().add("main-button");
+    loginButton.setStyle("-fx-font-size: 24; -fx-padding: 10 20; -fx-background-color: #3498db; -fx-text-fill: white;");
+    loginButton.setOnAction(event -> showLoginPage());
+
+    Button signUpButton = new Button("Sign Up");
+    signUpButton.getStyleClass().add("main-button");
+    signUpButton.setStyle("-fx-font-size: 24; -fx-padding: 10 20; -fx-background-color: #2ecc71; -fx-text-fill: white;");
+    signUpButton.setOnAction(event -> showSignUpPage());
+
+    HBox buttonBox = new HBox(20, loginButton, signUpButton);
+    buttonBox.setAlignment(Pos.CENTER);
+
+    StackPane stackPane = new StackPane(welcomeImageView, buttonBox);
+
+    // Set the background color directly for the StackPane
+    stackPane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null))); // Change Color.WHITE to the desired background color
+
+    Scene scene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(scene);
+}
+      private void showLoginPage() {
+    primaryStage.setTitle("Login Page");
+
+    Image loginImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg");
+    ImageView loginImageView = new ImageView(loginImage);
+
+    TextField usernameField = new TextField();
+    PasswordField passwordField = new PasswordField();
+
+    Button loginButton = new Button("Login");
+    loginButton.setStyle("-fx-font-size: 20; -fx-padding: 10 20; -fx-background-color: #006400; -fx-text-fill: white;");
+    loginButton.setOnAction(event -> performLogin(usernameField.getText(), passwordField.getText()));
+
+    Hyperlink goToSignUpLink = new Hyperlink("Don't have an account? Sign Up");
+    goToSignUpLink.setStyle("-fx-font-size: 14;");
+    goToSignUpLink.setOnAction(event -> showSignUpPage());
+
+    VBox loginLayout = new VBox(10, new Label("Username:"), usernameField, new Label("Password:"), passwordField, loginButton, goToSignUpLink);
+    loginLayout.setPadding(new Insets(20));
+    loginLayout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+
+    Hyperlink goToWelcomeLink = new Hyperlink("Back to Welcome Page");
+    goToWelcomeLink.setStyle("-fx-font-size: 14;");
+
+    VBox fullLoginPage = new VBox(20, loginLayout, goToWelcomeLink);
+    fullLoginPage.setAlignment(Pos.CENTER);
+    fullLoginPage.getStyleClass().add("main-background");
+
+    StackPane stackPane = new StackPane(loginImageView, fullLoginPage);
+
+    Scene loginScene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(loginScene);
+}
+
+     
+
+private void performLogin(String email, String password) {
+    try {
+        validateLoginFields(email, password);
+        if (isUserAuthenticated(email, password)) {
+            System.out.println("Login successful!");
+            showHomePage(email);
+        } else {
+            System.out.println("Invalid email or password.");
+        }
+    } catch (IllegalArgumentException e) {
+        System.out.println("Error: " + e.getMessage());
+    }
+}
+
+private Label createLabel(String text) {
+    Label label = new Label(text);
+    label.setStyle("-fx-font-weight: bold; -fx-font-size: 16;");
+    return label;
+}
+
+    private boolean isUserAuthenticated(String email, String password) {
+        /*String url = "jdbc:mysql://localhost:3306/hms";
+        String user = "root";
+        String pass = "Gobika@123";
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement pstmt = conn.prepareStatement(
+                     "SELECT * FROM user WHERE email = ? AND password = ?")) {
+
+            pstmt.setString(1, email);
+            pstmt.setString(2, password);
+
+            try (ResultSet resultSet = pstmt.executeQuery()) {
+                return resultSet.next();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+*/
+        return true;
+    }
+
+private void validateLoginFields(String email, String password) {
+        if (email.isEmpty() || password.isEmpty()) {
+            throw new IllegalArgumentException("Email and password are required.");
+        }
+    }
+
+     private void showSignUpPage() {
+        primaryStage.setTitle("Sign Up Page");
+
+        Image signUpImage = new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg");
+        ImageView signUpImageView = new ImageView(signUpImage);
+
+        TextField nameField = new TextField();
+        TextField emailField = new TextField();
+        PasswordField passwordField = new PasswordField();
+        TextField genderField = new TextField();
+        TextField bloodGroupField = new TextField();
+        TextField diseaseField = new TextField();
+
+        Button signUpButton = new Button("Sign Up");
+        signUpButton.setStyle("-fx-font-size: 20; -fx-padding: 10 20; -fx-background-color: #006400; -fx-text-fill: white;");
+        signUpButton.setOnAction(event -> performSignUp(
+                nameField.getText(), emailField.getText(), passwordField.getText(),
+                genderField.getText(), bloodGroupField.getText(), diseaseField.getText()));
+
+        Hyperlink goToLoginLink = new Hyperlink("Already have an account? Login");
+        goToLoginLink.setStyle("-fx-font-size: 14;");
+        goToLoginLink.setOnAction(event -> showLoginPage());
+
+        VBox signUpLayout = new VBox(10,
+                new Label("Name:"), nameField,
+                new Label("Email:"), emailField,
+                new Label("Password:"), passwordField,
+                new Label("Gender:"), genderField,
+                new Label("Blood Group:"), bloodGroupField,
+                new Label("Disease:"), diseaseField,
+                signUpButton, goToLoginLink);
+
+        signUpLayout.setAlignment(Pos.CENTER);
+        signUpLayout.setPadding(new Insets(20));
+        signUpLayout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+
+        StackPane stackPane = new StackPane(signUpImageView, signUpLayout);
+
+        Scene signUpScene = new Scene(stackPane, 800, 600);
+
+        primaryStage.setScene(signUpScene);
+    }
+
+    
+
+private void performSignUp(String name, String email, String password,
+                           String gender, String bloodGroup, String disease) {
+    try {
+        validateSignUpFields(name, email, password, gender, bloodGroup, disease);
+        saveUserToDatabase(name, email, null, gender, password, null); // You can replace null with actual values for age and dish
+
+        // For now, print the details to console
+        System.out.println("Name: " + name);
+        System.out.println("Email: " + email);
+        System.out.println("Password: " + password);
+        System.out.println("Gender: " + gender);
+        System.out.println("Blood Group: " + bloodGroup);
+        System.out.println("Disease: " + disease);
+
+        // After successful signup, navigate to the homepage with the email parameter
+        showHomePage(email);
+    } catch (IllegalArgumentException e) {
+        System.out.println("Error: " + e.getMessage());
+    }
+}
+
+private void validateSignUpFields(String name, String email, String password,
+                                   String gender, String bloodGroup, String disease) {
+    // Implement validation logic for sign-up fields
+    if (name.isEmpty() || email.isEmpty() || password.isEmpty() || gender.isEmpty() || bloodGroup.isEmpty() || disease.isEmpty()) {
+        throw new IllegalArgumentException("All sign-up fields are required.");
+    }
+    // You can add more validation as needed
+}
+
+  private void saveUserToDatabase(String name, String email, String password,
+                                String gender, String bloodGroup, String disease) {
+    String url = "jdbc:mysql://localhost:3306/hms";
+    String user = "root";
+    String pass = "Gobika@123";
+
+    try (Connection conn = DriverManager.getConnection(url, user, pass);
+         PreparedStatement pstmt = conn.prepareStatement(
+                 "INSERT INTO user (name, email, password, gender, blood_group, disease) VALUES (?, ?, ?, ?, ?, ?)")) {
+
+        pstmt.setString(1, name);
+        pstmt.setString(2, email);
+        pstmt.setString(3, password);
+        pstmt.setString(4, gender);
+        pstmt.setString(5, bloodGroup);
+        pstmt.setString(6, disease);
+        int rowsAffected = pstmt.executeUpdate();
+
+        if (rowsAffected > 0) {
+            System.out.println("User successfully saved to the database.");
+        } else {
+            System.out.println("Failed to save user to the database.");
+        }
+
+    } catch (SQLException e) {
+        // Handle the exception appropriately, e.g., log it or throw a custom exception
+        System.err.println("Error saving user to the database: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+
+
+  
+   
+private void showHomePage(String userEmail) {
+    primaryStage.setTitle("Home Page");
+
+    // Top section with welcome message and profile button
+    Label welcomeLabel = new Label("Welcome, " + userEmail + "!");
+    Button profileButton = new Button("Profile");
+    //profileButton.setOnAction(event -> showUserProfile(userEmail));
+    
+    HBox topSection = new HBox(10, welcomeLabel, profileButton);
+    topSection.setAlignment(Pos.TOP_LEFT);
+    topSection.setPadding(new Insets(10));
+
+    // Middle section with search bar, search button, and water level
+    TextField searchBar = new TextField();
+    Button searchButton = new Button("Search");
+    
+    // TODO: Add logic for searching disease
+    
+    // Water level section
+    Button waterLevelButton = new Button("Check Water Level");
+   waterLevelButton.setOnAction(event -> checkWaterLevel());
+    
+    // TODO: Add logic for checking water level
+    
+    HBox middleSection = new HBox(10, searchBar, searchButton, waterLevelButton);
+    middleSection.setAlignment(Pos.CENTER);
+    middleSection.setPadding(new Insets(20));
+
+    // Bottom section with buttons for taking medicines and consulting doctor
+    Button takeMedicineButton = new Button("Take Medicines");
+    Button consultDoctorButton = new Button("Consult Doctor");
+
+    // TODO: Add logic for taking medicines and consulting doctor
+
+    HBox bottomSection = new HBox(10, takeMedicineButton, consultDoctorButton);
+    bottomSection.setAlignment(Pos.BOTTOM_CENTER);
+    bottomSection.setPadding(new Insets(20));
+
+    // Main layout combining top, middle, and bottom sections
+    VBox homeLayout = new VBox(topSection, middleSection, bottomSection);
+    homeLayout.setAlignment(Pos.CENTER);
+    homeLayout.setStyle("-fx-background-image: url('C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg'); "
+            + "-fx-background-size: cover;");
+
+    Scene homeScene = new Scene(homeLayout, 800, 600);
+
+    primaryStage.setScene(homeScene);
+}
+private void checkWaterLevel() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Water Level Check");
+        dialog.setHeaderText("How much water did you drink (in liters)?");
+        dialog.setContentText("Enter the amount:");
+
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(amount -> {
+            try {
+                double waterAmount = Double.parseDouble(amount);
+
+                if (waterAmount < 3.0) {
+                    showAlert("Warning", "You drank less than 3 liters of water. Please drink more water!");
+                } else {
+                    showAlert("Congratulations", "Great job! You've met the recommended water intake. Keep it up!");
+                }
+            } catch (NumberFormatException e) {
+                showAlert("Error", "Invalid input. Please enter a valid number.");
+            }
+        });
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private VBox createFormLayout(Label... labelsAndFields) {
+        VBox layout = new VBox(10, labelsAndFields);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+        return layout;
+    }
+
+    private Button createStyledButton(String text, String style, javafx.event.EventHandler<javafx.event.ActionEvent> eventHandler) {
+        Button button = new Button(text);
+        button.setStyle(style);
+        button.setOnAction(eventHandler);
+        return button;
+    }
+
+    private StackPane createStackPaneWithImage(Image image, Node overlay) {
+        ImageView imageView = new ImageView(image);
+        StackPane stackPane = new StackPane(imageView, overlay);
+        return stackPane;
+    }
+      
+     /*private void showProfilePage(String userEmail) {
+        primaryStage.setTitle("Profile Page");
+
+        // Retrieve user details from the database based on userEmail
+        String name = ""; // Retrieve name from the database
+        String gender = ""; // Retrieve gender from the database
+        String bloodGroup = ""; // Retrieve blood group from the database
+        String disease = ""; // Retrieve disease from the database
+
+        // Create labels to display user details
+        Label nameLabel = createLabel("Name: " + name);
+        Label emailLabel = createLabel("Email: " + userEmail);
+        Label genderLabel = createLabel("Gender: " + gender);
+        Label bloodGroupLabel = createLabel("Blood Group: " + bloodGroup);
+        Label diseaseLabel = createLabel("Disease: " + disease);
+
+        // Create a back button to navigate to the home page
+        Button backButton = createStyledButton("Back to Home", "-fx-font-size: 18;", event -> showHomePage(userEmail));
+
+        // Create a VBox layout to organize the profile details
+        VBox profileLayout = createFormLayout(nameLabel, emailLabel, genderLabel, bloodGroupLabel, diseaseLabel, backButton);
+
+        // Set the background image
+        StackPane stackPane = createStackPaneWithImage(new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg"), profileLayout);
+
+        Scene profileScene = new Scene(stackPane, 800, 600);
+
+        primaryStage.setScene(profileScene);
+    }*/
+    /* private void showTakeMedicinePage(String userEmail) {
+        primaryStage.setTitle("Take Medicine Page");
+
+        // Retrieve medicine details from the database based on userEmail
+        // Example query: SELECT * FROM medicine WHERE user_email = ?
+        // Note: Adjust the query based on your actual database schema
+
+        // Create labels to display medicine details
+        Label medicineLabel = createLabel("Medicine: "); // You'll set the actual medicine name here
+        Label dosageLabel = createLabel("Dosage: "); // You'll set the actual dosage here
+        Label scheduleLabel = createLabel("Schedule: "); // You'll set the actual schedule here
+
+        // Create a button to simulate taking the medicine
+        Button takeMedicineButton = createStyledButton("Take Medicine", "-fx-font-size: 18;", event -> {
+            // Update the database to mark the medicine as taken
+            // Example query: UPDATE medicine SET is_taken = true WHERE user_email = ? AND id = ?
+            // Note: Adjust the query based on your actual database schema
+
+            // Display a confirmation message
+            showAlert("Medicine Taken", "You have successfully taken the medicine.");
+        });
+
+        // Create a back button to navigate to the home page
+        Button backButton = createStyledButton("Back to Home", "-fx-font-size: 18;", event -> showHomePage(userEmail));
+
+        // Create a VBox layout to organize the medicine details
+        VBox takeMedicineLayout = createFormLayout(medicineLabel, dosageLabel, scheduleLabel, takeMedicineButton, backButton);
+
+        // Set the background image
+        StackPane stackPane = createStackPaneWithImage(new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg"), takeMedicineLayout);
+
+        Scene takeMedicineScene = new Scene(stackPane, 800, 600);
+
+        primaryStage.setScene(takeMedicineScene);
+    }*/
+    /*private void showConsultDoctorPage(String userEmail) {
+        primaryStage.setTitle("Consult Doctor Page");
+
+        // Retrieve doctors' details from the database
+        // Example query: SELECT * FROM doctors
+        // Note: Adjust the query based on your actual database schema
+
+        VBox doctorsLayout = new VBox(10);
+
+        try (Connection conn = DriverManager.getConnection(url, user, pass);
+             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM doctors");
+             ResultSet resultSet = pstmt.executeQuery()) {
+
+            while (resultSet.next()) {
+                // Retrieve doctor details
+                String doctorName = resultSet.getString("name");
+                String phoneNumber = resultSet.getString("phone_number");
+                String hospitalName = resultSet.getString("hospital_name");
+                double rating = resultSet.getDouble("rating");
+
+                // Create labels to display doctor details
+                Label nameLabel = createLabel("Doctor: " + doctorName);
+                Label phoneLabel = createLabel("Phone Number: " + phoneNumber);
+                Label hospitalLabel = createLabel("Hospital: " + hospitalName);
+                Label ratingLabel = createLabel("Rating: " + rating);
+
+                // Create a button to initiate the consultation
+                Button consultButton = createStyledButton("Consult", "-fx-font-size: 18;", event -> {
+                    // Implement logic to initiate consultation
+                    // You may open a new window, show a form, etc.
+                    // This is a placeholder; replace it with your actual logic
+                    showAlert("Consultation", "You are consulting Dr. " + doctorName);
+                });
+
+                // Add doctor details and the consultation button to the layout
+                doctorsLayout.getChildren().addAll(nameLabel, phoneLabel, hospitalLabel, ratingLabel, consultButton);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Create a back button to navigate to the home page
+        Button backButton = createStyledButton("Back to Home", "-fx-font-size: 18;", event -> showHomePage(userEmail));
+
+        // Add the back button to the layout
+        doctorsLayout.getChildren().add(backButton);
+
+        // Set the background image
+        StackPane stackPane = createStackPaneWithImage(new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg"), doctorsLayout);
+
+        Scene consultDoctorScene = new Scene(stackPane, 800, 600);
+
+        primaryStage.setScene(consultDoctorScene);
+    }*/
+    private void showSearchPage() {
+    primaryStage.setTitle("Search Page");
+
+    TextField searchField = new TextField();
+    Button searchButton = new Button("Search");
+    TextArea resultTextArea = new TextArea();
+    resultTextArea.setEditable(false);
+
+    searchButton.setOnAction(event -> {
+        String searchTerm = searchField.getText();
+        if (!searchTerm.isEmpty()) {
+            // Call a method to retrieve disease details from the database
+            String diseaseDetails = getDiseaseDetailsFromDatabase(searchTerm);
+            
+            if (!diseaseDetails.isEmpty()) {
+                resultTextArea.setText(diseaseDetails);
+            } else {
+                showAlert("No Results", "No details found for the entered disease.");
+            }
+        } else {
+            showAlert("Error", "Please enter a disease to search.");
+        }
+    });
+
+    // Create a back button to navigate to the home page
+    Button backButton = createStyledButton("Back to Home", "-fx-font-size: 18;", event -> showHomePage("user@example.com"));
+
+    // Use the modified createFormLayout method with various types of nodes
+    VBox searchLayout = createFormLayout(
+            new Label("Enter Disease:"), searchField,
+            searchButton, new Label("Search Results:"), resultTextArea,
+            backButton);
+
+    // Set the background image
+    StackPane stackPane = createStackPaneWithImage(new Image("file:C:\\Users\\LENOVO\\Documents\\NetBeansProjects\\healthcare1\\src\\healthcare1\\hc.jpg"), searchLayout);
+
+    Scene searchScene = new Scene(stackPane, 800, 600);
+
+    primaryStage.setScene(searchScene);
+}
+
+// Method to retrieve disease details from the database
+private String getDiseaseDetailsFromDatabase(String searchTerm) {
+    // Connect to the database and retrieve disease details based on the searchTerm
+    // Replace the following lines with your actual database connection and query logic
+    String url = "jdbc:mysql://localhost:3306/hms";
+    String user = "root";
+    String pass = "Gobika@123";
+
+    StringBuilder result = new StringBuilder();
+
+    try (Connection conn = DriverManager.getConnection(url, user, pass);
+         PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM disease WHERE name = ?")) {
+
+        pstmt.setString(1, searchTerm);
+
+        try (ResultSet resultSet = pstmt.executeQuery()) {
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                String description = resultSet.getString("description");
+
+                result.append("Disease Name: ").append(name).append("\n");
+                result.append("Description: ").append(description).append("\n\n");
+            }
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return result.toString();
+}
+private VBox createFormLayout(Node... nodes) {
+    VBox layout = new VBox(10, nodes);
+    layout.setAlignment(Pos.CENTER);
+    layout.setPadding(new Insets(20));
+    layout.setStyle("-fx-background-color: rgba(255, 255, 255, 0.7); -fx-padding: 20; -fx-background-radius: 10;");
+    return layout;
+}
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
